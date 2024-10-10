@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ru">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Личный Финансовый Учет</title>
+        <link rel="stylesheet" href="css/styles.css" />
+    </head>
+    <body>
+        <!-- Всплывающее окно приветствия -->
+        <dialog id="welcomeDialog">
+            <p>Добро пожаловать в приложение для учета личных финансов!</p>
+            <button id="closeWelcome">Ок</button>
+        </dialog>
+          
+        <!-- Выбор месяца и года -->
+        <header>
+            <div class="month-selector">
+                <label for="month">Выберите месяц:</label>
+                <input type="month" id="selectedMonth" name="selectedMonth" value="" />
+                <!--<button id="show-all-operations">Показать все операции</button>-->
+            </div>
+            <!--<div class="month-selector">
+                <button id="prevMonth">←</button>
+                <span id="selectedMonth">Октябрь 2024</span>
+                <button id="nextMonth">→</button>
+            </div>-->
+            <button id="show-all-operations">Показать все операции</button>
+        </header>
+
+        <!-- Баланс, Доход, Расход -->
+        <main>
+            <section class="summary">
+                <div class="balance">
+                    Баланс: <span id="balanceAmount">0</span> руб.
+                </div>
+                <div class="income">
+                    Доход: <span id="incomeAmount">0</span> руб.
+                </div>
+                <div class="expense">
+                    Расход: <span id="expenseAmount">0</span> руб.
+                </div>
+            </section>
+
+            <!-- Кнопка "Добавить операцию" -->
+            <section>
+                <button id="addOperation">Добавить операцию</button>
+            </section>
+
+            <!-- Список операций -->
+            <section class="operations">
+                <h2>Список операций <span id="current-month">текущий месяц</span></h2>
+                <ul id="operationsList">
+                    <!-- Пример операции
+                    <li>
+                        <span class="operation-type">Доход</span>
+                        <span class="operation-category">Зарплата</span>
+                        <span class="operation-comment">Премия</span>
+                        <span class="operation-amount">15000 руб.</span>
+                        <span class="operation-date">01.10.2024</span>
+                        <button class="edit">Редактировать</button>
+                        <button class="delete">Удалить</button>
+                    </li>-->
+                </ul>
+            </section>
+
+            <!-- Расходы по категориям -->
+            <section class="categories">
+                <h2>Расходы по категориям</h2>
+                <ul id="categoriesList">
+                    <!-- Пример категории -->
+                    <li>
+                        <span class="category-name">Продукты</span>
+                        <span class="category-total">Всего: 5000 руб.</span>
+                        <span class="category-budget">Бюджет: 10000 руб.</span>
+                        <button class="edit-category">Редактировать</button>
+                    </li>
+                </ul>
+                <button id="addCategory">Добавить категорию</button>
+            </section>
+        </main>
+
+        <!-- Всплывающее окно для добавления/редактирования операции -->
+        <dialog id="operationDialog" name="operationDialog">
+            <form method="dialog" id="operationForm">
+                <label for="operationType">Тип операции</label>
+                <select id="operationType" name="operationType" required>
+                    <option value="income">Доход</option>
+                    <option value="expense" selected>Расход</option>
+                </select>
+                <div id="incomeFields" style="display: none">
+                    <label for="incomeAmount">Сумма</label>
+                    <input type="number" id="incomeAmountInput" name="incomeAmountInput" required/>
+                    <label for="incomeComment">Комментарий</label>
+                    <input type="text" id="incomeComment" name="incomeComment" required/><br />
+                    <label for="incomeDate">Дата</label>
+                    <input type="date" id="incomeDate" name="incomeDate" required/>
+                </div>
+                <div id="expenseFields"  >
+                    <label for="expenseCategory">Категория</label>
+                    <select id="expenseCategory" required>
+            <!-- Категории позже будут динамически добавляться -->
+                        <option value="foods" selected>Продукты</option>
+                        <option value="repair">Ремонт</option>
+                        <option value="car">Машина</option></select
+                    ><br />
+                    </select>
+                    <label for="expenseAmount">Сумма</label>
+                    <input type="number" id="expenseAmountInput" name="expenseAmountInput" required/>
+                    <label for="expenseComment">Комментарий</label>
+                    <input type="text" id="expenseComment" name="expenseComment" required/><br />
+                    
+                    <label for="expenseDate">Дата</label>
+                    <input type="date" id="expenseDate" name="expenseDate" required/>
+                </div>
+                <button type="submit">Сохранить</button>
+                <button type="button" id="closeDialog">Отмена</button>
+            </form>
+        </dialog>
+
+        <!-- Всплывающее окно для добавления/редактирования категории -->
+        <dialog id="categoryDialog">
+            <form method="dialog">
+                <label for="categoryName">Название категории</label>
+                <input type="text" id="categoryName" />
+                <label for="categoryBudget">Бюджет</label>
+                <input type="number" id="categoryBudget" />
+                <button type="submit">Сохранить</button>
+                <button type="button" id="closeCategoryDialog">Отмена</button>
+            </form>
+        </dialog>
+
+        <script type="module" src="js/app.js"></script>
+    </body>
+</html>
