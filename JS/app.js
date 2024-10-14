@@ -1,19 +1,19 @@
+//app.js
 //Экспорт функций из модулей
 
 import { getCurrentMonth, formatMonth } from "../modules/dateUtils.js";
 
 import { getDataFromStorage, saveDataToStorage } from "../modules/storage.js";
 
-import {
-    calculatOperations,
-    updateAndRenderOperations,
-} from "../modules/ui.js";
+import { updateAndRenderOperations, refreshUI } from "../modules/ui.js";
 
 import {
     sortOperationsByMonthAndYear,
-    // deleteExpense,
-    // editExpense,
-} from "../modules/expenseManager.js";
+    calculatOperations,
+    addOperation,
+    deleteOperation,
+    // editOperation,
+} from "../modules/operationsManager.js";
 
 // DOM элементы
 export const welcomeDialog = document.getElementById("welcomeDialog");
@@ -44,6 +44,7 @@ export const btnAddCategory = document.getElementById("addCategory");
 
 //Всплывающее окно для добавления/редактирования операции
 export const formOperationDialog = document.getElementById("operationDialog");
+export const operationForm = document.getElementById("operationForm");
 export const operationType = document.getElementById("operationType");
 
 //Доходы
@@ -61,7 +62,6 @@ export const expenseDate = document.getElementById("expenseDate");
 
 //Всплывающее окно для добавления/редактирования категории
 export const formCategoryDialog = document.getElementById("categoryDialog");
-export const operationForm = document.getElementById("operationForm");
 export const categoryName = document.getElementById("categoryName");
 export const categoryBudget = document.getElementById("categoryBudget");
 
@@ -73,19 +73,20 @@ export const formWelcomeDialog = document.getElementById("welcomeDialog");
 
 //localStorage.clear();
 //Массив для хранения расходов
-export let operations = getDataFromStorage();
-
+let operations = getDataFromStorage();
+//console.log(operations);
 //Отображаем расходы при загрузке приложения
 let currentMonth = getCurrentMonth(); //получаем текущий месяц
-
+//console.log(currentMonth);
 selectedMonth.value = currentMonth; //записываем его в поле
-let currentMonthOperations = sortOperationsByMonthAndYear(
-    operations,
-    currentMonth
-);
+let currentMonthOperations = sortOperationsByMonthAndYear(currentMonth);
+
+//refreshUI();
+//console.log(currentMonthOperations);
 updateAndRenderOperations(currentMonthOperations);
 //считаем баланс, сумму расходов/доходов и выводим на экран
 calculatOperations(currentMonth);
+//formInputRequired();
 
 //Нажатие кнопки "Показать все операции"
 btnShowAllOperations.addEventListener("click", () => {
@@ -93,15 +94,13 @@ btnShowAllOperations.addEventListener("click", () => {
     selectedMonthText.innerText = "за всё время";
     selectedMonth.value = "";
     //сортируем массив
-    const monthYear = selectedMonth.value;
-    const sortedOperations = sortOperationsByMonthAndYear(
-        operations,
-        monthYear
-    );
-    //выводим отсортированный массив в приложение
-    updateAndRenderOperations(sortedOperations);
-    //считаем баланс, сумму расходов/доходов и выводим на экран
-    calculatOperations(monthYear);
+    // const monthYear = selectedMonth.value;
+    // const sortedOperations = sortOperationsByMonthAndYear(monthYear);
+    // //выводим отсортированный массив в приложение
+    // updateAndRenderOperations(sortedOperations);
+    // //считаем баланс, сумму расходов/доходов и выводим на экран
+    // calculatOperations(monthYear);
+    refreshUI();
 });
 
 //Мониторинг изменения месяца
@@ -110,82 +109,86 @@ selectedMonth.addEventListener("change", () => {
     //обновляем в заголовке "Список операций за ..." название месяца
     selectedMonthText.innerText = formatMonth(monthYear);
     //сортировка и обновление экрана
-    const sortedOperations = sortOperationsByMonthAndYear(
-        operations,
-        monthYear
-    );
-    updateAndRenderOperations(sortedOperations);
-    //считаем баланс, сумму расходов/доходов и выводим на экран
-    calculatOperations(monthYear);
+    // const sortedOperations = sortOperationsByMonthAndYear(monthYear);
+    // updateAndRenderOperations(sortedOperations);
+    // //считаем баланс, сумму расходов/доходов и выводим на экран
+    // calculatOperations(monthYear);
+    refreshUI();
 });
 
 //мониторинг нажатия кнопки "Добавить операцию"
 btnAddOperation.addEventListener("click", () => {
+    // if (!operationForm.hasAttribute("data-listener")) {
     formOperationDialog.showModal(); //показываем окно
+
     operationForm.reset(); //очищаем поля формы
     formInputRequired(); //и делаем видимыми нужные поля и делаем их required
-});
 
-//мониторим Сохранение формы
-operationForm.addEventListener("submit", (event) => {
+    // Убедитесь, что обработчик не добавляется повторно
+    if (!operationForm.hasAttribute("data-listener")) {
+        operationForm.setAttribute("data-listener", "true");
+        operationForm.addEventListener("submit", handleSubmit);
+    }
+    // Удаляем предыдущий обработчик перед добавлением нового
+    // operationForm.removeEventListener("submit", handleSubmit);
+    // operationForm.addEventListener("submit", handleSubmit);
+});
+//обработчик Сохранения формы
+function handleSubmit(event) {
+    //operationForm.addEventListener("submit", (event) => {
     event.preventDefault();
+
     //создаем объект operation
     let typeOperation = operationForm.querySelector("#operationType").value;
-    let operation;
+    let newOperation = [];
     //в зависимости от типа операции (Доход/Расход) создаем объект
-    switch (typeOperation) {
-        case "expense":
-            operation = {
-                id: Date.now(),
-                //type: operationForm.querySelector("#operationType").value,
-                type: "Расходы",
-
-                category: operationForm.querySelector("#expenseCategory").value,
-                description:
-                    operationForm.querySelector("#expenseComment").value,
-                date: operationForm.querySelector("#expenseDate").value,
-                amount: operationForm.querySelector("#expenseAmountInput")
-                    .value,
-            };
-            break;
-        case "income": {
-            operation = {
-                id: Date.now(), // Генерируем уникальный ID на основе текущего времени
-                //type: operationForm.querySelector("#operationType").value,
-                type: "Доходы",
-                category: "",
-                description:
-                    operationForm.querySelector("#incomeComment").value,
-                date: operationForm.querySelector("#incomeDate").value,
-                amount: operationForm.querySelector("#incomeAmountInput").value,
-            };
-            break;
-        }
+    //switch (typeOperation) {
+    //    case "expense":
+    if (typeOperation === "expense") {
+        newOperation = {
+            id: Date.now(), // Генерируем уникальный ID на основе текущего времени
+            type: "Расходы",
+            category: operationForm.querySelector("#expenseCategory").value,
+            description: operationForm.querySelector("#expenseComment").value,
+            date: operationForm.querySelector("#expenseDate").value,
+            amount: operationForm.querySelector("#expenseAmountInput").value,
+        };
     }
-    //console.log(operation);
+    // break;
+    //case "income": {
+    else if (typeOperation === "income") {
+        newOperation = {
+            id: Date.now(),
+            type: "Доходы",
+            category: "",
+            description: operationForm.querySelector("#incomeComment").value,
+            date: operationForm.querySelector("#incomeDate").value,
+            amount: operationForm.querySelector("#incomeAmountInput").value,
+        };
+        //break;
+    }
+
+    console.log(newOperation);
     //и добавлем этот объект в наш массив расходов
-    operations.push(operation);
+    addOperation(newOperation);
+    //operations.push(operation);
     //console.log(operations);
 
     //далее сохраняем его в LS
-    saveDataToStorage(operations);
-    //operationForm.reset(); //очищаем поля формы
+    //saveDataToStorage(operations);
     formOperationDialog.close(); //закрываем окно
-    //formInputRequired(); //отрисовываем форму в зависимости от значение типа операции
-    //Обновляем интерфейс
-    const monthYear = selectedMonth.value;
-    //сортируем массив
-    const sortedOperations = sortOperationsByMonthAndYear(
-        operations,
-        monthYear
-    );
-    //выводим отсортированный массив в приложение
-    updateAndRenderOperations(sortedOperations);
-    //считаем баланс, сумму расходов/доходов и выводим на экран
-    calculatOperations(monthYear);
-});
 
-//делаем видимыми поля в зависимости от типа операции и делаем их required
+    //Обновляем интерфейс
+    // const monthYear = selectedMonth.value;
+    // //сортируем и выводим массив
+    // const sortedOperations = sortOperationsByMonthAndYear(monthYear);
+    // updateAndRenderOperations(sortedOperations);
+    // //считаем баланс, сумму расходов/доходов и выводим на экран
+    // calculatOperations(monthYear);
+    refreshUI();
+}
+
+//делаем видимыми поля в зависимости от типа операции и делаем их requir
 function formInputRequired() {
     if (operationType.value === "income") {
         //formOperationDialog.showModal();
@@ -221,5 +224,12 @@ closeDialog.addEventListener("click", () => {
 
 //отслеживаем изменение категории операции и меняем отображение полей
 operationType.addEventListener("change", () => {
-    formInputRequired(); //делаем видимыми нужные поля и делаем их required
+    //Обновляем интерфейс
+    // const monthYear = selectedMonth.value;
+    // //сортируем и выводим массив
+    // const sortedOperations = sortOperationsByMonthAndYear(monthYear);
+    // updateAndRenderOperations(sortedOperations);
+    // //считаем баланс, сумму расходов/доходов и выводим на экран
+    // calculatOperations(monthYear);
+    refreshUI();
 });

@@ -1,3 +1,4 @@
+//Storage.JS
 // Модуль для работы с Local Storage
 
 //import { expenses } from "../JS/app.js";
