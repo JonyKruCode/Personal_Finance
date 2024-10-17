@@ -2,16 +2,31 @@
 // Модуль управления операциями (добавление, редактирование,
 // удаление, сортировка, расчет сумм)
 
-// import {
-//     //selectedMonth,
-//     operations,
-//     //operations,
-//     // expenseDate,
-//     // expenseAmount,
-//     //expenseDescription,
-// } from "../JS/app.js";
+import {
+    formOperationDialog,
+    operationType,
+    operationForm,
+    formInputRequired,
+    categoryName,
+    incomeAmountInput,
+    incomeComment,
+    incomeDate,
+    expenseCategory,
+    expenseAmountInput,
+    expenseComment,
+    expenseDate,
+    handleSubmit,
+    //selectedMonth,
+    //operations,
+    //operations,
+    // expenseDate,
+    // expenseAmount,
+    //expenseDescription,
+} from "../JS/app.js";
+
 import { saveDataToStorage, getDataFromStorage } from "./storage.js";
-import { updateAndRenderOperations, refreshUI } from "./ui.js";
+
+import { refreshUI } from "./ui.js";
 
 // Получаем массив операций из Local Storage
 //const operations = getDataFromStorage();
@@ -95,9 +110,6 @@ export function sortOperationsByMonthAndYear(monthYear) {
     }
 }
 
-// //Редактирует существующий расход в Local Storage, обновляя его поля
-// export function editExpense(id, updatedExpense) {}
-
 //считаем сумму РАСХОДОВ/ДОХОДОВ за выбранный месяц
 export function calculatOperations(monthYear) {
     //получили массив операций за нужный месяц
@@ -129,4 +141,80 @@ export function calculatOperations(monthYear) {
 
     //посчитали баланс
     balanceAmount.textContent = totalIncome - totalExpenses;
+}
+
+// Именованная функция для обработки отправки формы
+// function handleFormSubmit(event, operationId) {
+//     event.preventDefault();
+//     // Удаляем операцию из LS
+//     deleteOperation(operationId);
+
+//     // Теперь вызываем handleSubmit для сохранения данных
+//     handleSubmit(event);
+// }
+
+//Редактирует существующий расход в Local Storage, обновляя его поля
+export function editOperation(id) {
+    formOperationDialog.showModal(); //показываем окно
+    operationForm.reset();
+    const operations = getDataFromStorage();
+    // Берем в массив только нужную операцию
+    const updatedOperation = operations.find((operation) => operation.id == id);
+
+    //в зависимости от типа операции, делаем видимыми нужные поля и заполняем их
+    if (updatedOperation.type === "Доходы") {
+        operationType.value = "income";
+        formInputRequired();
+        incomeAmountInput.value = updatedOperation.amount;
+        incomeComment.value = updatedOperation.description;
+        incomeDate.value = updatedOperation.date;
+    } else {
+        operationType.value = "expense";
+        formInputRequired();
+        expenseCategory.value = updatedOperation.category;
+        expenseAmountInput.value = updatedOperation.amount;
+        expenseComment.value = updatedOperation.description;
+        expenseDate.value = updatedOperation.date;
+    }
+    if (!operationForm.hasAttribute("data-listener")) {
+        operationForm.setAttribute("data-listener", "true");
+        operationForm.addEventListener("submit", function hundler(event) {
+            handleSubmit(event, id);
+            operationForm.removeEventListener("submit", hundler);
+        });
+    }
+    // Создаем обертку для передачи id в обработчик
+    // const handleFormSubmitWrapper = (event) =>
+    //     handleFormSubmit(event, updatedOperation.id);
+
+    // //if (operationForm.hasAttribute("data-listener")) {
+    // operationForm.removeEventListener("submit", handleFormSubmitWrapper);
+    // //}
+
+    // operationForm.addEventListener("submit", handleFormSubmitWrapper);
+
+    // operationForm.setAttribute("data-listener", "true");
+
+    // // Добавляем новый обработчик
+    // operationForm.addEventListener("submit", (event) =>
+    //     handleFormSubmit(event, updatedOperation.id)
+    // ); // refreshUI();
+
+    // let typeOperation = operationForm.querySelector("#operationType").value;
+    // let newOperation = [];
+    // //в зависимости от типа операции (Доход/Расход) создаем объект
+    // //switch (typeOperation) {
+    // //    case "expense":
+    // if (typeOperation === "expense") {
+    //     newOperation = {
+    //         id: Date.now(), // Генерируем уникальный ID на основе текущего времени
+    //         type: "Расходы",
+    //         category: operationForm.querySelector("#expenseCategory").value,
+    //         description: operationForm.querySelector("#expenseComment").value,
+    //         date: operationForm.querySelector("#expenseDate").value,
+    //         amount: operationForm.querySelector("#expenseAmountInput").value,
+    //     };
+    // }
+
+    //saveDataToStorage(updatedOperation);
 }

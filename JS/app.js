@@ -44,7 +44,7 @@ export const btnAddCategory = document.getElementById("addCategory");
 
 //Всплывающее окно для добавления/редактирования операции
 export const formOperationDialog = document.getElementById("operationDialog");
-export const operationForm = document.getElementById("operationForm");
+export let operationForm = document.getElementById("operationForm");
 export const operationType = document.getElementById("operationType");
 
 //Доходы
@@ -118,32 +118,28 @@ selectedMonth.addEventListener("change", () => {
 
 //мониторинг нажатия кнопки "Добавить операцию"
 btnAddOperation.addEventListener("click", () => {
-    // if (!operationForm.hasAttribute("data-listener")) {
     formOperationDialog.showModal(); //показываем окно
-
     operationForm.reset(); //очищаем поля формы
     formInputRequired(); //и делаем видимыми нужные поля и делаем их required
 
-    // Убедитесь, что обработчик не добавляется повторно
+    // Убеждаемся, что обработчик не добавляется повторно и сохраняем форму
     if (!operationForm.hasAttribute("data-listener")) {
         operationForm.setAttribute("data-listener", "true");
         operationForm.addEventListener("submit", handleSubmit);
     }
-    // Удаляем предыдущий обработчик перед добавлением нового
-    // operationForm.removeEventListener("submit", handleSubmit);
-    // operationForm.addEventListener("submit", handleSubmit);
 });
 //обработчик Сохранения формы
-function handleSubmit(event) {
-    //operationForm.addEventListener("submit", (event) => {
+export function handleSubmit(event, id = null) {
     event.preventDefault();
+    console.log(id);
+    if (id !== null) {
+        deleteOperation(id);
+    }
 
     //создаем объект operation
     let typeOperation = operationForm.querySelector("#operationType").value;
     let newOperation = [];
     //в зависимости от типа операции (Доход/Расход) создаем объект
-    //switch (typeOperation) {
-    //    case "expense":
     if (typeOperation === "expense") {
         newOperation = {
             id: Date.now(), // Генерируем уникальный ID на основе текущего времени
@@ -153,10 +149,7 @@ function handleSubmit(event) {
             date: operationForm.querySelector("#expenseDate").value,
             amount: operationForm.querySelector("#expenseAmountInput").value,
         };
-    }
-    // break;
-    //case "income": {
-    else if (typeOperation === "income") {
+    } else if (typeOperation === "income") {
         newOperation = {
             id: Date.now(),
             type: "Доходы",
@@ -171,25 +164,24 @@ function handleSubmit(event) {
     console.log(newOperation);
     //и добавлем этот объект в наш массив расходов
     addOperation(newOperation);
-    //operations.push(operation);
-    //console.log(operations);
 
-    //далее сохраняем его в LS
-    //saveDataToStorage(operations);
     formOperationDialog.close(); //закрываем окно
-
-    //Обновляем интерфейс
-    // const monthYear = selectedMonth.value;
-    // //сортируем и выводим массив
-    // const sortedOperations = sortOperationsByMonthAndYear(monthYear);
-    // updateAndRenderOperations(sortedOperations);
-    // //считаем баланс, сумму расходов/доходов и выводим на экран
-    // calculatOperations(monthYear);
+    //удаляем слушателя
+    operationForm.removeEventListener("submit", handleSubmit);
+    operationForm.removeAttribute("data-listener");
+    console.log(operationForm.hasAttribute("data-listener"));
     refreshUI();
 }
 
+// // Удаление всех существующих слушателей submit, чтобы предотвратить дублирование
+// function removeExistingSubmitListener() {
+//     const newForm = operationForm.cloneNode(true); // Клонируем форму
+//     operationForm.replaceWith(newForm); // Заменяем старую форму на клонированную
+//     operationForm = newForm; // Обновляем ссылку на новую форму
+// }
 //делаем видимыми поля в зависимости от типа операции и делаем их requir
-function formInputRequired() {
+export function formInputRequired() {
+    // if (type == "") {
     if (operationType.value === "income") {
         //formOperationDialog.showModal();
         incomeFields.style.display = "block";
@@ -215,14 +207,38 @@ function formInputRequired() {
         incomeComment.removeAttribute("required");
         incomeDate.removeAttribute("required");
     }
+    // } else if (type == "Доходы") {
+    //     incomeFields.style.display = "block";
+    //     expenseFields.style.display = "none";
+    //     //делаем активные поля обязательными к заполнению
+    //     incomeAmountInput.setAttribute("required", "true");
+    //     incomeComment.setAttribute("required", "true");
+    //     incomeDate.setAttribute("required", "true");
+    //     //делаем не активные поля не обязательными к заполнению
+    //     expenseAmountInput.removeAttribute("required");
+    //     expenseComment.removeAttribute("required");
+    //     expenseDate.removeAttribute("required");
+    // } else if (type == "Расходы") {
+    //     incomeFields.style.display = "none";
+    //     expenseFields.style.display = "block";
+    //     //делаем активные поля обязательными к заполнению
+    //     expenseAmountInput.setAttribute("required", "true");
+    //     expenseComment.setAttribute("required", "true");
+    //     expenseDate.setAttribute("required", "true");
+    //     //делаем не активные поля не обязательными к заполнению
+    //     incomeAmountInput.removeAttribute("required");
+    //     incomeComment.removeAttribute("required");
+    //     incomeDate.removeAttribute("required");
 }
+// }
 //при нажатии на "Отмена" закроется окно добавления операции
 closeDialog.addEventListener("click", () => {
     operationForm.reset(); //очистим поля формы
     formOperationDialog.close(); //закроем форму
+    //operationForm.close;
 });
 
-//отслеживаем изменение категории операции и меняем отображение полей
+//отслеживаем изменение типа операции и меняем отображение полей
 operationType.addEventListener("change", () => {
     //Обновляем интерфейс
     // const monthYear = selectedMonth.value;
@@ -231,5 +247,6 @@ operationType.addEventListener("change", () => {
     // updateAndRenderOperations(sortedOperations);
     // //считаем баланс, сумму расходов/доходов и выводим на экран
     // calculatOperations(monthYear);
-    refreshUI();
+    //refreshUI();
+    formInputRequired();
 });

@@ -2,12 +2,11 @@
 //Модуль управления пользовательским интерфейсом
 
 import {
+    editOperation,
     deleteOperation,
     calculatOperations,
     sortOperationsByMonthAndYear,
 } from "./operationsManager.js";
-
-// import { editExpense, deleteExpense } from "./expenseManager.js";
 
 import {
     incomeAmount,
@@ -38,18 +37,20 @@ export function updateAndRenderOperations(operations) {
         const li = document.createElement("li");
         //и записываем в него следующий текст
         li.innerHTML = `
-            <span>${operation.type} ${operation.amount} ${operation.category}  ${operation.description} ${operation.date}</span>
+            <span>${operation.type} ${operation.amount} ${operation.description} ${operation.date}</span>
             <div class="operations-actions">
                 <button class="edit-operation">Редактировать</button>
                 <button class="delete-operation">Удалить</button>
             </div>
         `;
         // Обработка события редактирования расхода
-        // const editButton = li.querySelector(".edit-operation");
-        // editButton.addEventListener("click", () => editExpense(expense.id));
-        //Обработка события удаления расхода
+        const editButton = li.querySelector(".edit-operation");
+        editButton.addEventListener("click", () => editOperation(operation.id));
+
+        // Обработка события удаления расхода
         const deleteButton = li.querySelector(".delete-operation");
         deleteButton.addEventListener("click", () => {
+            //console.log(operation.id);
             deleteOperation(operation.id);
             //считаем сумму расходов и выводим
             //totalExpenses.innerText = getTotalExpensesForMonth(monthYear);
